@@ -4,9 +4,16 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class Sosgame : MonoBehaviour
 {
+
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+
+
     public GameObject gamePopScreen;
     public GameObject mainParent;
     GameObject[,] grid_cell = new GameObject[7, 6];
@@ -14,6 +21,7 @@ public class Sosgame : MonoBehaviour
 
     int current_player = 1;
     public Sprite[] move_object = new Sprite[2];
+    public Sprite[] move_object_blue = new Sprite[2];
     int settings = 0;
     public Button button1, button2, button3;
     bool runningFlag = false;
@@ -22,7 +30,7 @@ public class Sosgame : MonoBehaviour
 
     public GameObject pauseMenu, score1, score2;
     public GameObject resumeMenu;
-    public Button resumeButton, restartButton, exitButton, cancelButton;
+    public Button resumeButton, restartButton, exitButton, cancelButton, soundOn, soundOff, vibrationOn, vibrationOff;
     public Button restartBtn, exButton;
     public TextMeshProUGUI text_pop;
     TextMeshPro turning_text, score1val, score2val;
@@ -31,7 +39,7 @@ public class Sosgame : MonoBehaviour
     bool isPaused = false;
     bool gameFinish = false;
     int scorenum1 = 0, scorenum2 = 0;
-
+    int count = 0;
     public GameObject bground;
 
     void Start()
@@ -52,6 +60,16 @@ public class Sosgame : MonoBehaviour
         score2val = score2.GetComponent<TextMeshPro>();
 
 
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
+
+
         string name = "Artboard 1@1.5xsos2_5";
         for (int i = 0; i < 42; i++)
         {
@@ -69,7 +87,7 @@ public class Sosgame : MonoBehaviour
                 grid_board[i, j] = 0;
             }
         }
-        settings = PlayerPrefs.GetInt("sosgame", 0);
+        settings = PlayerPrefs.GetInt("sosgame", 3);
 
         current_player = UnityEngine.Random.Range(1, 3);
 
@@ -79,10 +97,12 @@ public class Sosgame : MonoBehaviour
             score2val.text = "RED's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -92,6 +112,7 @@ public class Sosgame : MonoBehaviour
             score2val.text = "AI's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if (settings == 1)
                 {
@@ -108,6 +129,7 @@ public class Sosgame : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
@@ -116,6 +138,188 @@ public class Sosgame : MonoBehaviour
         button2.onClick.AddListener(button1Click2);
         button3.onClick.AddListener(button1Click3);
     }
+
+    void setSprite(int num)
+    {
+        if(num == 2)
+        {
+            button1.GetComponent<Image>().sprite = move_object[0];
+            button2.GetComponent<Image>().sprite = move_object[1];
+        }
+        else
+        {
+            button1.GetComponent<Image>().sprite = move_object_blue[0];
+            button2.GetComponent<Image>().sprite = move_object_blue[1];
+        }
+    }
+
+
+
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
+
 
     void resizeScreen()
     {
@@ -160,23 +364,27 @@ public class Sosgame : MonoBehaviour
 
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
         SceneManager.LoadScene("parentpage");
     }
 
     void onRestartClicked()
     {
+        playButtonClickSound();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
 
     void onPauseGame()
     {
+        playButtonClickSound();
         if (gameFinish) return;
         if (gamePopScreen.activeSelf)
         {
@@ -186,9 +394,22 @@ public class Sosgame : MonoBehaviour
         else
         {
             isPaused = true;
+            updatePopupPanel();
             pauseMenu.SetActive(true);
         }
         
+    }
+
+    Sprite getApp(int num)
+    {
+        if(current_player == 2)
+        {
+            return move_object[num];
+        }
+        else
+        {
+            return move_object_blue[num];
+        }
     }
 
 
@@ -197,8 +418,9 @@ public class Sosgame : MonoBehaviour
         gamePopScreen.SetActive(false);
         grid_board[selectedX, selectedY] = 1;
         SpriteRenderer spriteRenderer = grid_cell[selectedX, selectedY].GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = move_object[0];
+        spriteRenderer.sprite = getApp(0);
         runningFlag = false;
+        soundManagerOperation();
         if(settings == 0)
         {
             action_Player(CheckWinnerisReady(grid_board));
@@ -214,8 +436,9 @@ public class Sosgame : MonoBehaviour
         gamePopScreen.SetActive(false);
         grid_board[selectedX, selectedY] = 2;
         SpriteRenderer spriteRenderer = grid_cell[selectedX, selectedY].GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = move_object[1];
+        spriteRenderer.sprite = getApp(1);
         runningFlag = false;
+        soundManagerOperation();
         if (settings == 0)
         {
             action_Player(CheckWinnerisReady(grid_board));
@@ -228,6 +451,7 @@ public class Sosgame : MonoBehaviour
 
     void button1Click3()
     {
+        playButtonClickSound();
         gamePopScreen.SetActive(false);
         selectedX = -1;
         selectedY = -1;
@@ -236,12 +460,29 @@ public class Sosgame : MonoBehaviour
 
     void Update()
     {
-        if (runningFlag) return;
+
         if (isPaused) return;
         if (gameFinish) return;
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            onPauseGame();
+        }
+
+        if (runningFlag) return;
+        
+
         if (Input.GetMouseButtonDown(0))
         {
+            count++;
+            if (count > 15)
+            {
+                if (GoogleMobileAdsScript.ShowAd())
+                {
+                    count = -20;
+                }
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
 
@@ -260,10 +501,12 @@ public class Sosgame : MonoBehaviour
                             {
                                 if (grid_board[i, j] == 0)
                                 {
+                                    playButtonClickSound();
                                     runningFlag = true;
                                     selectedX = i;
                                     selectedY = j;
                                     gamePopScreen.SetActive(true);
+                                    setSprite(current_player);
                                 }
                             }
                         }
@@ -280,10 +523,12 @@ public class Sosgame : MonoBehaviour
                             {
                                 if (grid_board[i, j] == 0)
                                 {
+                                    playButtonClickSound();
                                     runningFlag = true;
                                     selectedX = i;
                                     selectedY = j;
                                     gamePopScreen.SetActive(true);
+                                    setSprite(current_player);
                                 }
                             }
                         }
@@ -294,18 +539,7 @@ public class Sosgame : MonoBehaviour
             }
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
-        {
-            if (gamePopScreen.activeSelf)
-            {
-                gamePopScreen.SetActive(false);
-                runningFlag = false;
-            }
-            else
-            {
-                onPauseGame();
-            }
-        }
+        
     }
 
 
@@ -331,7 +565,8 @@ public class Sosgame : MonoBehaviour
         int num = UnityEngine.Random.Range(1, 3);
         grid_board[ix, jx] = num;
         SpriteRenderer spriteRenderer = grid_cell[ix, jx].GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = move_object[num - 1];
+        spriteRenderer.sprite = getApp(num-1);
+        soundManagerOperation();
         action_AI(CheckWinnerisReady(grid_board));
     }
 
@@ -659,7 +894,8 @@ public class Sosgame : MonoBehaviour
 
         grid_board[finalposX, finalposY] = final_val;
         SpriteRenderer spriteRenderer = grid_cell[finalposX, finalposY].GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = move_object[final_val - 1];
+        spriteRenderer.sprite = getApp(final_val-1);
+        soundManagerOperation();
         action_AI(CheckWinnerisReady(grid_board));
 
     }
@@ -692,10 +928,12 @@ public class Sosgame : MonoBehaviour
                 current_player = (current_player == 1) ? 2 : 1;
                 if (current_player == 2)
                 {
+                    turning_text.color = Color.red;
                     turning_text.text = "RED's Turn";
                 }
                 else
                 {
+                    turning_text.color = Color.blue;
                     turning_text.text = "Blue's Turn";
                 }
             }
@@ -706,6 +944,7 @@ public class Sosgame : MonoBehaviour
                 if (checkifAvailable(grid_board) == 0) return;
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(1));
                 }
@@ -717,6 +956,7 @@ public class Sosgame : MonoBehaviour
                 if (checkifAvailable(grid_board) == 0) return;
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(1));
                 }
@@ -727,6 +967,7 @@ public class Sosgame : MonoBehaviour
         }
         else
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(1));
             return;
@@ -742,10 +983,12 @@ public class Sosgame : MonoBehaviour
                 current_player = (current_player == 1) ? 2 : 1;
                 if (current_player == 2)
                 {
+                    turning_text.color = Color.red;
                     turning_text.text = "AI's Turn";
                 }
                 else
                 {
+                    turning_text.color = Color.blue;
                     turning_text.text = "Your Turn";
                 }
 
@@ -774,6 +1017,7 @@ public class Sosgame : MonoBehaviour
                 if (checkifAvailable(grid_board) == 0) return;
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(2));
                 }
@@ -799,6 +1043,7 @@ public class Sosgame : MonoBehaviour
                 }
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(2));
                 }
@@ -809,6 +1054,7 @@ public class Sosgame : MonoBehaviour
         }
         else
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(2));
             return;
@@ -819,10 +1065,17 @@ public class Sosgame : MonoBehaviour
     IEnumerator showWinner(int ridoy)
     {
         yield return new WaitForSeconds(1f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
         if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            string val = "Blue's Score: " + scorenum1 + " & Red's Score: " + scorenum2;
+            string val = "Blue's Score: " + scorenum1 + "\nRed's Score: " + scorenum2;
             if (scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";
@@ -840,7 +1093,7 @@ public class Sosgame : MonoBehaviour
         else
         {
             resumeMenu.SetActive(true);
-            string val = "Your Score: " + scorenum1 + " & AI's Score: " + scorenum2;
+            string val = "Your Score: " + scorenum1 + "\nAI's Score: " + scorenum2;
             if (scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";

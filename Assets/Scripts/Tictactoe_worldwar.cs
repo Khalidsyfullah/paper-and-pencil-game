@@ -7,6 +7,12 @@ using UnityEngine.SceneManagement;
 
 public class Tictactoe_worldwar : MonoBehaviour
 {
+
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+
+
     public GameObject mainParent;
     GameObject[,] grid_cell = new GameObject[7, 6];
     int[,] grid_board = new int[7, 6];
@@ -18,7 +24,7 @@ public class Tictactoe_worldwar : MonoBehaviour
 
     public GameObject pauseMenu, score1, score2;
     public GameObject resumeMenu;
-    public Button resumeButton, restartButton, exitButton, cancelButton;
+    public Button resumeButton, restartButton, exitButton, cancelButton, soundOn, soundOff, vibrationOn, vibrationOff;
     public Button restartBtn, exButton;
     public TextMeshProUGUI text_pop;
     TextMeshPro turning_text, score1val, score2val;
@@ -27,7 +33,7 @@ public class Tictactoe_worldwar : MonoBehaviour
     bool isPaused = false;
     bool gameFinish = false;
     int scorenum1 = 0, scorenum2 = 0;
-
+    int count = 0;
     public GameObject bground;
 
     void Start()
@@ -45,6 +51,16 @@ public class Tictactoe_worldwar : MonoBehaviour
         turning_text = turning_object.GetComponent<TextMeshPro>();
         score1val = score1.GetComponent<TextMeshPro>();
         score2val = score2.GetComponent<TextMeshPro>();
+
+
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
 
         string name = "Artboard 1_10";
         for (int i = 0; i < 42; i++)
@@ -64,7 +80,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                 grid_board[i, j] = 0;
             }
         }
-        settings = PlayerPrefs.GetInt("Tictactoeww", 0);
+        settings = PlayerPrefs.GetInt("Tictactoeww", 3);
 
         current_player = UnityEngine.Random.Range(1, 3);
 
@@ -74,10 +90,12 @@ public class Tictactoe_worldwar : MonoBehaviour
             score2val.text = "RED's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -87,6 +105,7 @@ public class Tictactoe_worldwar : MonoBehaviour
             score2val.text = "AI's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if (settings == 1)
                 {
@@ -103,32 +122,204 @@ public class Tictactoe_worldwar : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
     }
 
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
+
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
         SceneManager.LoadScene("parentpage");
     }
 
     void onRestartClicked()
     {
+        playButtonClickSound();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinish) return;
         isPaused = true;
+        updatePopupPanel();
         pauseMenu.SetActive(true);
     }
 
@@ -178,6 +369,15 @@ public class Tictactoe_worldwar : MonoBehaviour
         if (gameFinish) return;
         if (Input.GetMouseButtonDown(0))
         {
+            count++;
+            if (count > 15)
+            {
+                if (GoogleMobileAdsScript.ShowAd())
+                {
+                    count = -20;
+                }
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
             if (hit.collider != null)
@@ -199,6 +399,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                                 {
                                     grid_board[i, j] = current_player;
                                     spriteRenderer.sprite = move_object[current_player - 1];
+                                    soundManagerOperation();
                                     action_AI(CheckWinnerisReady(grid_board));
                                     return;
                                 }
@@ -219,6 +420,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                                 {
                                     grid_board[i, j] = current_player;
                                     spriteRenderer.sprite = move_object[current_player - 1];
+                                    soundManagerOperation();
                                     int val = CheckWinnerisReady(grid_board);
                                     if (val != -1)
                                     {
@@ -227,10 +429,12 @@ public class Tictactoe_worldwar : MonoBehaviour
                                             current_player = (current_player == 1) ? 2 : 1;
                                             if (current_player == 2)
                                             {
+                                                turning_text.color = Color.red;
                                                 turning_text.text = "RED's Turn";
                                             }
                                             else
                                             {
+                                                turning_text.color = Color.blue;
                                                 turning_text.text = "Blue's Turn";
                                             }
                                         }
@@ -241,6 +445,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                                             if(checkifAvailable(grid_board) == 0) return;
                                             else
                                             {
+                                                gameEndSound();
                                                 gameFinish = true;
                                                 StartCoroutine(showWinner(1));
                                             }
@@ -252,6 +457,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                                             if (checkifAvailable(grid_board) == 0) return;
                                             else
                                             {
+                                                gameEndSound();
                                                 gameFinish = true;
                                                 StartCoroutine(showWinner(1));
                                             }
@@ -262,6 +468,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                                     }
                                     else
                                     {
+                                        gameEndSound();
                                         gameFinish = true;
                                         StartCoroutine(showWinner(1));
                                         return;
@@ -276,7 +483,7 @@ public class Tictactoe_worldwar : MonoBehaviour
             }
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -292,10 +499,12 @@ public class Tictactoe_worldwar : MonoBehaviour
                 current_player = (current_player == 1) ? 2 : 1;
                 if (current_player == 2)
                 {
+                    turning_text.color = Color.red;
                     turning_text.text = "AI's Turn";
                 }
                 else
                 {
+                    turning_text.color = Color.blue;
                     turning_text.text = "Your Turn";
                 }
 
@@ -324,6 +533,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                 if (checkifAvailable(grid_board) == 0) return;
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(2));
                 }
@@ -349,6 +559,7 @@ public class Tictactoe_worldwar : MonoBehaviour
                 }
                 else
                 {
+                    gameEndSound();
                     gameFinish = true;
                     StartCoroutine(showWinner(2));
                 }
@@ -359,6 +570,7 @@ public class Tictactoe_worldwar : MonoBehaviour
         }
         else
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(2));
             return;
@@ -389,6 +601,7 @@ public class Tictactoe_worldwar : MonoBehaviour
         grid_board[ix, jx] = current_player;
         SpriteRenderer spriteRenderer = grid_cell[ix, jx].GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = move_object[current_player - 1];
+        soundManagerOperation();
         action_AI(CheckWinnerisReady(grid_board));
     }
 
@@ -704,6 +917,7 @@ public class Tictactoe_worldwar : MonoBehaviour
         grid_board[finalposX, finalposY] = current_player;
         SpriteRenderer spriteRenderer = grid_cell[finalposX, finalposY].GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = move_object[current_player - 1];
+        soundManagerOperation();
         action_AI(CheckWinnerisReady(grid_board));
 
     }
@@ -747,11 +961,18 @@ public class Tictactoe_worldwar : MonoBehaviour
 
     IEnumerator showWinner(int ridoy)
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(2.5f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
         if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            string val = "Blue's Score: " + scorenum1 + " & Red's Score: " + scorenum2;
+            string val = "Blue's Score: " + scorenum1 + "\nRed's Score: " + scorenum2;
             if(scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";
@@ -769,7 +990,7 @@ public class Tictactoe_worldwar : MonoBehaviour
         else
         {
             resumeMenu.SetActive(true);
-            string val = "Your Score: " + scorenum1 + " & AI's Score: " + scorenum2;
+            string val = "Your Score: " + scorenum1 + "\nAI's Score: " + scorenum2;
             if (scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";

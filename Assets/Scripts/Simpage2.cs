@@ -7,10 +7,14 @@ using UnityEngine.UI;
 
 public class Simpage2 : MonoBehaviour
 {
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+
 
     GameObject[,] grid_value = new GameObject[20, 3];
     int[,] grid_num = new int[20,3];
-    Color[] df_val = { Color.red, Color.blue };
+    Color[] df_val = { Color.blue, Color.red };
     int current_player = 0;
     int settings = 0;
     int[,] triangles = new int[20, 3] {{0, 13, 5},{0, 1, 2},{0, 3, 8},{0, 7, 12},{13, 1, 10},{13, 3, 11},{13, 6, 7},{1, 3, 4},{1, 7, 14},{3, 7, 9},{5, 2, 10},{5, 8, 11},{5, 6, 12},
@@ -20,7 +24,7 @@ public class Simpage2 : MonoBehaviour
 
     public GameObject pauseMenu;
     public GameObject resumeMenu;
-    public Button resumeButton, restartButton, exitButton, cancelButton;
+    public Button resumeButton, restartButton, exitButton, cancelButton, soundOn, soundOff, vibrationOn, vibrationOff;
     public Button restartBtn, exButton;
     public TextMeshProUGUI text_pop;
     TextMeshPro turning_text;
@@ -28,7 +32,6 @@ public class Simpage2 : MonoBehaviour
     public Button pause_object;
     bool isPaused = false;
     bool gameFinish = false;
-
     public GameObject bground;
 
     void Start()
@@ -45,6 +48,16 @@ public class Simpage2 : MonoBehaviour
         exitButton.onClick.AddListener(onExitClicked);
         pause_object.onClick.AddListener(onPauseGame);
         turning_text = turning_object.GetComponent<TextMeshPro>();
+
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
+
 
         for (int i = 0; i < 20; i++)
         {
@@ -75,10 +88,12 @@ public class Simpage2 : MonoBehaviour
         {
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -86,6 +101,7 @@ public class Simpage2 : MonoBehaviour
         {
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if (settings == 1)
                 {
@@ -102,6 +118,7 @@ public class Simpage2 : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
@@ -149,27 +166,200 @@ public class Simpage2 : MonoBehaviour
         bground.transform.localScale = new Vector3(sizeInScreenUnitswidth1, sizeInScreenUnitsheight1, 1);
     }
 
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
+
+
+
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
         SceneManager.LoadScene("parentpage");
     }
 
     void onRestartClicked()
     {
+        playButtonClickSound();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinish) return;
         isPaused = true;
+        updatePopupPanel();
         pauseMenu.SetActive(true);
     }
 
@@ -201,7 +391,7 @@ public class Simpage2 : MonoBehaviour
 
                                 if (CheckifWinner(gamer))
                                 {
-
+                                    gameEndSound();
                                     gameFinish = true;
                                     StartCoroutine(showWinner(2));
                                     return;
@@ -209,18 +399,22 @@ public class Simpage2 : MonoBehaviour
 
                                 if (checkifEnd())
                                 {
+                                    gameEndSound();
                                     gameFinish = true;
                                     StartCoroutine(showWinner(1));
                                     return;
                                 }
 
+                                soundManagerOperation();
                                 current_player = (current_player == 1) ? 2 : 1;
                                 if (current_player == 2)
                                 {
+                                    turning_text.color = Color.red;
                                     turning_text.text = "RED's Turn";
                                 }
                                 else
                                 {
+                                    turning_text.color= Color.blue;
                                     turning_text.text = "Blue's Turn";
                                 }
                                 return;
@@ -246,7 +440,7 @@ public class Simpage2 : MonoBehaviour
 
                                 if (CheckifWinner(gamer))
                                 {
-
+                                    gameEndSound();
                                     gameFinish = true;
                                     StartCoroutine(showWinner(3));
                                     return;
@@ -254,11 +448,12 @@ public class Simpage2 : MonoBehaviour
 
                                 if (checkifEnd())
                                 {
+                                    gameEndSound();
                                     gameFinish = true;
                                     StartCoroutine(showWinner(1));
                                     return;
                                 }
-
+                                soundManagerOperation();
                                 move_AI();
                                 return;
 
@@ -270,7 +465,7 @@ public class Simpage2 : MonoBehaviour
 
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -281,10 +476,12 @@ public class Simpage2 : MonoBehaviour
         current_player = (current_player == 1) ? 2 : 1;
         if (current_player == 2)
         {
+            turning_text.color = Color.red;
             turning_text.text = "AI's Turn";
         }
         else
         {
+            turning_text.color = Color.blue;
             turning_text.text = "Your Turn";
         }
 
@@ -337,10 +534,11 @@ public class Simpage2 : MonoBehaviour
         }
 
         int rand = UnityEngine.Random.Range(0, emptyList.Count);
-
+        soundManagerOperation();
         GameObject gm = grid_value[emptyList[rand].x, emptyList[rand].y];
         if (CheckifWinner(gm))
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(3));
             return;
@@ -348,6 +546,7 @@ public class Simpage2 : MonoBehaviour
 
         if (checkifEnd())
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(1));
             return;
@@ -423,10 +622,11 @@ public class Simpage2 : MonoBehaviour
                 finalX = blockX;
                 finalY = blockY;
             }
-
+            soundManagerOperation();
             GameObject gm = grid_value[finalX, finalY];
             if (CheckifWinner(gm))
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(3));
                 return;
@@ -434,6 +634,7 @@ public class Simpage2 : MonoBehaviour
 
             if (checkifEnd())
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(1));
                 return;
@@ -494,21 +695,28 @@ public class Simpage2 : MonoBehaviour
     IEnumerator showWinner(int ridoy)
     {
         yield return new WaitForSeconds(2.5f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
         if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            text_pop.text = "Match Draw!";
+            text_pop.text = "Match \nDraw!";
         }
         else if (ridoy == 2)
         {
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "Blue is Winner!";
+                text_pop.text = "Blue is \nWinner!";
             }
             else
             {
-                text_pop.text = "Red is Winner!";
+                text_pop.text = "Red is \nWinner!";
             }
         }
         else if (ridoy == 3)
@@ -516,11 +724,11 @@ public class Simpage2 : MonoBehaviour
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "You've Won!";
+                text_pop.text = "You've \nWon!";
             }
             else
             {
-                text_pop.text = "You've Lost!";
+                text_pop.text = "You've \nLost!";
             }
         }
     }

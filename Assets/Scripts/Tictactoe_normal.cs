@@ -7,6 +7,12 @@ using UnityEngine.SceneManagement;
 
 public class Tictactoe_normal : MonoBehaviour
 {
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+
+
+
     GameObject[,] grid_cell = new GameObject[3, 3];
     int[,] grid_board = new int[3, 3];
     public GameObject mainParent;
@@ -15,7 +21,7 @@ public class Tictactoe_normal : MonoBehaviour
     int settings = 0;
     public GameObject pauseMenu;
     public GameObject resumeMenu;
-    public Button resumeButton, restartButton, exitButton, cancelButton;
+    public Button resumeButton, restartButton, exitButton, cancelButton, soundOn, soundOff, vibrationOn, vibrationOff;
     public Button restartBtn, exButton;
     public TextMeshProUGUI text_pop;
     TextMeshPro turning_text;
@@ -45,6 +51,15 @@ public class Tictactoe_normal : MonoBehaviour
         pause_object.onClick.AddListener(onPauseGame);
         turning_text = turning_object.GetComponent<TextMeshPro>();
 
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
+
         string name = "Artboard 1_9";
         for(int i=0; i<9; i++)
         {
@@ -62,6 +77,7 @@ public class Tictactoe_normal : MonoBehaviour
                 grid_board[i, j] = 0;
             }
         }
+        
         settings = PlayerPrefs.GetInt("Tictactoe", 0);
         current_player = Random.Range(1, 3);
 
@@ -70,10 +86,12 @@ public class Tictactoe_normal : MonoBehaviour
             if (current_player == 2)
             {
                 turning_text.text = "RED's Turn";
+                turning_text.color = Color.red;
             }
             else
             {
                 turning_text.text = "Blue's Turn";
+                turning_text.color = Color.blue;
             }
         }
         else
@@ -81,6 +99,7 @@ public class Tictactoe_normal : MonoBehaviour
             if (current_player == 2)
             {
                 turning_text.text = "AI's Turn";
+                turning_text.color = Color.red;
                 if (settings == 1)
                 {
                     Invoke("AI_Turn_Easy", 1f);
@@ -97,6 +116,7 @@ public class Tictactoe_normal : MonoBehaviour
             else
             {
                 turning_text.text = "Your Turn";
+                turning_text.color = Color.blue;
             }
         }
     }
@@ -141,19 +161,188 @@ public class Tictactoe_normal : MonoBehaviour
         bground.transform.localScale = new Vector3(sizeInScreenUnitswidth1, sizeInScreenUnitsheight1, 1);
     }
 
+
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
+
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
         SceneManager.LoadScene("parentpage");
     }
 
     void onRestartClicked()
     {
+        playButtonClickSound();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
@@ -186,15 +375,18 @@ public class Tictactoe_normal : MonoBehaviour
                                     grid_board[i, j] = current_player;
                                     spriteRenderer.sprite = move_object[current_player - 1];
                                     int val = CheckWinnerisReady(grid_board);
+                                    soundManagerOperation();
                                     if (val == 0)
                                     {
                                         current_player = (current_player == 1) ? 2 : 1;
                                         if (current_player == 2)
                                         {
+                                            turning_text.color = Color.red;
                                             turning_text.text = "AI's Turn";
                                         }
                                         else
                                         {
+                                            turning_text.color = Color.blue;
                                             turning_text.text = "Your Turn";
                                         }
 
@@ -217,12 +409,14 @@ public class Tictactoe_normal : MonoBehaviour
                                     }
                                     else if(val == -1)
                                     {
+                                        gameEndSound();
                                         gameFinish = true;
                                         StartCoroutine(showWinner(1));
                                         return;
                                     }
                                     else
                                     {
+                                        gameEndSound();
                                         gameFinish = true;
                                         StartCoroutine(showWinner(3));
                                         return;
@@ -234,7 +428,6 @@ public class Tictactoe_normal : MonoBehaviour
                 }
                 else
                 {
-
                     for (int i = 0; i < 3; i++)
                     {
                         for (int j = 0; j < 3; j++)
@@ -243,35 +436,43 @@ public class Tictactoe_normal : MonoBehaviour
                             {
                                 if (grid_board[i, j] == 0)
                                 {
+
                                     grid_board[i, j] = current_player;
                                     spriteRenderer.sprite = move_object[current_player-1];
                                     int val = CheckWinnerisReady(grid_board);
+                                    soundManagerOperation();
                                     if (val == 0)
                                     {
                                         current_player = (current_player == 1) ? 2 : 1;
                                         if (current_player == 2)
                                         {
+                                            turning_text.color = Color.red;
                                             turning_text.text = "RED's Turn";
                                         }
                                         else
                                         {
+                                            turning_text.color = Color.blue;
                                             turning_text.text = "Blue's Turn";
                                         }
                                         return;
                                     }
                                     else if (val == -1)
                                     {
+                                        gameEndSound();
                                         gameFinish = true;
                                         StartCoroutine(showWinner(1));
                                         return;
                                     }
                                     else
                                     {
+                                        gameEndSound();
                                         gameFinish = true;
                                         StartCoroutine(showWinner(2));
                                         return;
                                     }
                                 }
+                            
+                            
                             }
                         }
                     }
@@ -281,7 +482,7 @@ public class Tictactoe_normal : MonoBehaviour
             }
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -291,22 +492,29 @@ public class Tictactoe_normal : MonoBehaviour
     
     IEnumerator showWinner(int ridoy)
     {
-        yield return new WaitForSeconds(1f);
-        if(ridoy == 1)
+        yield return new WaitForSeconds(2.5f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
+        if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            text_pop.text = "Match Draw!";
+            text_pop.text = "Match \nDraw!";
         }
         else if(ridoy == 2)
         {
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "Blue is Winner!";
+                text_pop.text = "Blue is \nWinner!";
             }
             else
             {
-                text_pop.text = "Red is Winner!";
+                text_pop.text = "Red is \nWinner!";
             }
         }
         else if(ridoy == 3)
@@ -314,11 +522,11 @@ public class Tictactoe_normal : MonoBehaviour
             resumeMenu.SetActive(true);
             if(current_player == 1)
             {
-                text_pop.text = "You've Won!";
+                text_pop.text = "You've \nWon!";
             }
             else
             {
-                text_pop.text = "You've Lost!";
+                text_pop.text = "You've \nLost!";
             }
         }
     }
@@ -326,8 +534,11 @@ public class Tictactoe_normal : MonoBehaviour
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinish) return;
         isPaused = true;
+        updatePopupPanel();
         pauseMenu.SetActive(true);
     }
 
@@ -361,25 +572,30 @@ public class Tictactoe_normal : MonoBehaviour
                         SpriteRenderer spriteRenderer = grid_cell[i, j].GetComponent<SpriteRenderer>();
                         spriteRenderer.sprite = move_object[current_player - 1];
                         int val = CheckWinnerisReady(grid_board);
+                        soundManagerOperation();
                         if (val == 0)
                         {
                             current_player = (current_player == 1) ? 2 : 1;
                             if (current_player == 2)
                             {
+                                turning_text.color = Color.red;
                                 turning_text.text = "AI's Turn";
                             }
                             else
                             {
+                                turning_text.color = Color.blue;
                                 turning_text.text = "Your Turn";
                             }
                         }
                         else if (val == -1)
                         {
+                            gameEndSound();
                             gameFinish = true;
                             StartCoroutine(showWinner(1));
                         }
                         else
                         {
+                            gameEndSound();
                             gameFinish = true;
                             StartCoroutine(showWinner(3));
                         }
@@ -493,15 +709,14 @@ public class Tictactoe_normal : MonoBehaviour
                 {
                     cont2++;
                 }
-                if ((cont1 == 2 || cont2 == 2) && cont0 == 1)
-                {
-                    finalx = temp;
-                    finaly = i;
-                    finish = true;
-                    break;
-                }
-
             }
+            if ((cont1 == 2 || cont2 == 2) && cont0 == 1)
+            {
+                finalx = temp;
+                finaly = temp;
+                finish = true;
+            }
+
             cont0 = 0;
             cont1 = 0;
             cont2 = 0;
@@ -525,15 +740,13 @@ public class Tictactoe_normal : MonoBehaviour
                 {
                     cont2++;
                 }
+            }
                 if ((cont1 == 2 || cont2 == 2) && cont0 == 1)
                 {
                     finalx = temp;
-                    finaly = 2 - i;
+                    finaly = 2 - temp;
                     finish = true;
-                    break;
                 }
-
-            }
         }
 
         if (!finish)
@@ -546,25 +759,30 @@ public class Tictactoe_normal : MonoBehaviour
             SpriteRenderer spriteRenderer = grid_cell[finalx, finaly].GetComponent<SpriteRenderer>();
             spriteRenderer.sprite = move_object[current_player - 1];
             int val = CheckWinnerisReady(grid_board);
+            soundManagerOperation();
             if (val == 0)
             {
                 current_player = (current_player == 1) ? 2 : 1;
                 if (current_player == 2)
                 {
+                    turning_text.color = Color.red;
                     turning_text.text = "AI's Turn";
                 }
                 else
                 {
+                    turning_text.color = Color.blue;
                     turning_text.text = "Your Turn";
                 }
             }
             else if (val == -1)
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(1));
             }
             else
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(3));
             }
@@ -696,7 +914,7 @@ public class Tictactoe_normal : MonoBehaviour
     }
 
 
-        void AI_Turn_Medium()
+    void AI_Turn_Medium()
     {
 
         int num = FindNextBestMove(grid_board);
@@ -709,25 +927,30 @@ public class Tictactoe_normal : MonoBehaviour
         SpriteRenderer spriteRenderer = grid_cell[bestMoveX, bestMoveY].GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = move_object[current_player - 1];
         int val = CheckWinnerisReady(grid_board);
+        soundManagerOperation();
         if (val == 0)
         {
             current_player = (current_player == 1) ? 2 : 1;
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
         else if (val == -1)
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(1));
         }
         else
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(3));
         }
@@ -738,69 +961,36 @@ public class Tictactoe_normal : MonoBehaviour
     private int CheckWinnerisReady(int[,] board)
     {
         // Check rows
+
         for (int i = 0; i < 3; i++)
         {
-            if (board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2])
+            if (board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2] && board[i, 0] != 0)
             {
-                if (board[i, 0] == 0) return 0;
                 drawLine(grid_cell[i,0], grid_cell[i, 2], current_player);
-                if (board[i, 0] == 1)
-                {
-                    return 1; // Player 1 wins
-                }
-                else if (board[i, 0] == 2)
-                {
-                    return 2; // Player 2 wins
-                }
+                return board[i, 0];
             }
         }
 
-        // Check columns
         for (int j = 0; j < 3; j++)
         {
-            if (board[0, j] == board[1, j] && board[1, j] == board[2, j])
+            if (board[0, j] == board[1, j] && board[1, j] == board[2, j] && board[0, j]!= 0)
             {
-                if (board[0, j] == 0) return 0;
                 drawLine(grid_cell[0, j], grid_cell[2, j], current_player);
-
-                if (board[0, j] == 1)
-                {
-                    return 1; // Player 1 wins
-                }
-                else if (board[0, j] == 2)
-                {
-                    return 2; // Player 2 wins
-                }
+                return board[0, j];
             }
         }
 
-        // Check diagonals
+        
         if (board[0, 0] == board[1, 1] && board[1, 1] == board[2, 2] && board[1, 1] != 0)
         {
             drawLine(grid_cell[0, 0], grid_cell[2, 2], current_player);
-
-            if (board[0, 0] == 1)
-            {
-                return 1; // Player 1 wins
-            }
-            else if (board[0, 0] == 2)
-            {
-                return 2; // Player 2 wins
-            }
+            return board[0, 0];
         }
 
         if (board[0, 2] == board[1, 1] && board[1, 1] == board[2, 0] && board[1, 1] != 0)
         {
             drawLine(grid_cell[2, 0], grid_cell[0, 2], current_player);
-
-            if (board[0, 2] == 1)
-            {
-                return 1; // Player 1 wins
-            }
-            else if (board[0, 2] == 2)
-            {
-                return 2; // Player 2 wins
-            }
+            return board[1, 1];
         }
 
         for(int i=0; i<3; i++)
@@ -811,7 +1001,6 @@ public class Tictactoe_normal : MonoBehaviour
             }
         }
 
-        // Game is not over yet
         return -1;
     }
 

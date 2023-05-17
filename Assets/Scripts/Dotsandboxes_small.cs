@@ -8,6 +8,12 @@ using System.Collections;
 
 public class Dotsandboxes_small : MonoBehaviour
 {
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+    public Button soundOn, soundOff, vibrationOn, vibrationOff;
+
+
     public GameObject parent_object;
     GameObject[] horizontal_object = new GameObject[35];
     int[] horizontal_value = new int[36];
@@ -34,7 +40,7 @@ public class Dotsandboxes_small : MonoBehaviour
     bool isPaused = false;
     bool gameFinish = false;
     int scorenum1 = 0, scorenum2 = 0;
-
+    int count = 0;
     public GameObject bground;
 
     void Start()
@@ -52,6 +58,18 @@ public class Dotsandboxes_small : MonoBehaviour
         turning_text = turning_object.GetComponent<TextMeshPro>();
         score1val = score1.GetComponent<TextMeshPro>();
         score2val = score2.GetComponent<TextMeshPro>();
+
+
+
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
+
 
         string name1 = "Artboard 1mdpi_6";
         string name2 = "Artboard 1mdpi_8";
@@ -117,10 +135,12 @@ public class Dotsandboxes_small : MonoBehaviour
             score2val.text = "RED's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -130,6 +150,7 @@ public class Dotsandboxes_small : MonoBehaviour
             score2val.text = "AI's Score: 0";
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if (settings == 1)
                 {
@@ -146,33 +167,204 @@ public class Dotsandboxes_small : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
     }
 
 
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
-        SceneManager.LoadScene("parentpage");
+        playButtonClickSound();
+        SceneManager.LoadSceneAsync("parentpage");
     }
 
     void onRestartClicked()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
+        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinish) return;
         isPaused = true;
+        updatePopupPanel();
         pauseMenu.SetActive(true);
     }
 
@@ -223,6 +415,16 @@ public class Dotsandboxes_small : MonoBehaviour
         if (gameFinish) return;
         if (Input.GetMouseButtonDown(0))
         {
+
+            count++;
+            if (count > 20)
+            {
+                if (GoogleMobileAdsScript.ShowAd())
+                {
+                    count = -20;
+                }
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
             if (hit.collider != null)
@@ -261,21 +463,25 @@ public class Dotsandboxes_small : MonoBehaviour
                             }
                         }
 
+                        soundManagerOperation();
                         if (!checkifWin() && !checkifEnd())
                         {
 
                             current_player = (current_player == 2) ? 1 : 2;
                             if (current_player == 2)
                             {
+                                turning_text.color = Color.red;
                                 turning_text.text = "RED's Turn";
                             }
                             else
                             {
+                                turning_text.color = Color.blue;
                                 turning_text.text = "Blue's Turn";
                             }
                         }
                         else if (checkifEnd())
                         {
+                            gameEndSound();
                             gameFinish = true;
                             StartCoroutine(showWinner(1));
                             return;
@@ -313,22 +519,25 @@ public class Dotsandboxes_small : MonoBehaviour
                                     }
                                 }
                             }
-
+                            soundManagerOperation();
                             if (!checkifWin() && !checkifEnd())
                             {
                                 current_player = (current_player == 2) ? 1 : 2;
                                 if (current_player == 2)
                                 {
+                                    turning_text.color = Color.red;
                                     turning_text.text = "RED's Turn";
                                 }
                                 else
                                 {
+                                    turning_text.color = Color.blue;
                                     turning_text.text = "Blue's Turn";
                                 }
                             }
 
                             else if (checkifEnd())
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(1));
                                 return;
@@ -373,17 +582,19 @@ public class Dotsandboxes_small : MonoBehaviour
                                 }
                             }
                         }
-
+                        soundManagerOperation();
                         if (!checkifWinAI() && !checkifEnd())
                         {
 
                             current_player = (current_player == 2) ? 1 : 2;
                             if (current_player == 2)
                             {
+                                turning_text.color = Color.red;
                                 turning_text.text = "AI's Turn";
                             }
                             else
                             {
+                                turning_text.color = Color.blue;
                                 turning_text.text = "Your Turn";
                             }
 
@@ -406,6 +617,7 @@ public class Dotsandboxes_small : MonoBehaviour
                         }
                         else if (checkifEnd())
                         {
+                            gameEndSound();
                             gameFinish = true;
                             StartCoroutine(showWinner(2));
                             return;
@@ -443,16 +655,18 @@ public class Dotsandboxes_small : MonoBehaviour
                                     }
                                 }
                             }
-
+                            soundManagerOperation();
                             if (!checkifWin() && !checkifEnd())
                             {
                                 current_player = (current_player == 2) ? 1 : 2;
                                 if (current_player == 2)
                                 {
+                                    turning_text.color = Color.red;
                                     turning_text.text = "AI's Turn";
                                 }
                                 else
                                 {
+                                    turning_text.color = Color.blue;
                                     turning_text.text = "Your Turn";
                                 }
 
@@ -476,6 +690,7 @@ public class Dotsandboxes_small : MonoBehaviour
 
                             else if (checkifEnd())
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(2));
                                 return;
@@ -488,7 +703,7 @@ public class Dotsandboxes_small : MonoBehaviour
             }
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -497,11 +712,18 @@ public class Dotsandboxes_small : MonoBehaviour
 
     IEnumerator showWinner(int ridoy)
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(2.5f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
         if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            string val = "Blue's Score: " + scorenum1 + " & Red's Score: " + scorenum2;
+            string val = "Blue's Score: " + scorenum1 + "\nRed's Score: " + scorenum2;
             if (scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";
@@ -519,7 +741,7 @@ public class Dotsandboxes_small : MonoBehaviour
         else
         {
             resumeMenu.SetActive(true);
-            string val = "Your Score: " + scorenum1 + " & AI's Score: " + scorenum2;
+            string val = "Your Score: " + scorenum1 + "\nAI's Score: " + scorenum2;
             if (scorenum1 == scorenum2)
             {
                 val += "\nMatch Draw!";
@@ -562,24 +784,28 @@ public class Dotsandboxes_small : MonoBehaviour
             }
         }
 
-        if (checkifEnd())
-        {
-            gameFinish = true;
-            StartCoroutine(showWinner(2));
-            return;
-        }
-
-        if (!checkifWin())
+        soundManagerOperation();
+        if (!checkifWin() && !checkifEnd())
         {
             current_player = (current_player == 2) ? 1 : 2;
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
+        }
+
+        else if (checkifEnd())
+        {
+            gameEndSound();
+            gameFinish = true;
+            StartCoroutine(showWinner(2));
+            return;
         }
 
         else

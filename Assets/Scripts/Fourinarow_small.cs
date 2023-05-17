@@ -7,6 +7,11 @@ using UnityEngine.UI;
 
 public class Fourinarow_small : MonoBehaviour
 {
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+    public Button soundOn, soundOff, vibrationOn, vibrationOff;
+
     public GameObject mainParent;
     GameObject[,] grid_cell = new GameObject[7, 5];
     int[,] grid_board = new int[7, 5];
@@ -29,6 +34,7 @@ public class Fourinarow_small : MonoBehaviour
     bool gameFinish = false;
 
     public GameObject bground;
+    int count = 0;
 
     void Start()
     {
@@ -44,6 +50,15 @@ public class Fourinarow_small : MonoBehaviour
         exitButton.onClick.AddListener(onExitClicked);
         pause_object.onClick.AddListener(onPauseGame);
         turning_text = turning_object.GetComponent<TextMeshPro>();
+
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
 
 
         string name = "Artboard 14inarow1_14";
@@ -81,10 +96,12 @@ public class Fourinarow_small : MonoBehaviour
         {
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color= Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -92,6 +109,7 @@ public class Fourinarow_small : MonoBehaviour
         {
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if (settings == 1)
                 {
@@ -108,33 +126,202 @@ public class Fourinarow_small : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
     }
 
 
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
 
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
-        SceneManager.LoadScene("parentpage");
+        playButtonClickSound();
+        SceneManager.LoadSceneAsync("parentpage");
     }
 
     void onRestartClicked()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
+        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound(); 
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinish) return;
+        updatePopupPanel();
         isPaused = true;
         pauseMenu.SetActive(true);
     }
@@ -186,6 +373,15 @@ public class Fourinarow_small : MonoBehaviour
         if (gameFinish) return;
         if (Input.GetMouseButtonDown(0))
         {
+            count++;
+            if (count > 20)
+            {
+                if (GoogleMobileAdsScript.ShowAd())
+                {
+                    count = -20;
+                }
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
             if (hit.collider != null)
@@ -211,17 +407,19 @@ public class Fourinarow_small : MonoBehaviour
                             {
                                 grid_cell[emptyCells[i].x, emptyCells[i].y].GetComponent<SpriteRenderer>().sprite = possible_move;
                             }
-
+                            soundManagerOperation();
                             int value = CheckWinner(grid_board);
                             if (value == 0)
                             {
                                 current_player = (current_player == 1) ? 2 : 1;
                                 if (current_player == 2)
                                 {
+                                    turning_text.color = Color.red;
                                     turning_text.text = "AI's Turn";
                                 }
                                 else
                                 {
+                                    turning_text.color = Color.blue;
                                     turning_text.text = "Your Turn";
                                 }
 
@@ -244,12 +442,14 @@ public class Fourinarow_small : MonoBehaviour
                             }
                             else if (value == -1)
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(1));
                                 return;
                             }
                             else
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(3));
                                 return;
@@ -269,6 +469,7 @@ public class Fourinarow_small : MonoBehaviour
                         {
                             grid_board[emptyCells[i].x, emptyCells[i].y] = current_player;
                             spriteRenderer.sprite = move_object[current_player - 1];
+                            soundManagerOperation();
                             int val = CheckWinner(grid_board);
                             emptyCells[i].x--;
                             if (emptyCells[i].x >= 0)
@@ -279,23 +480,27 @@ public class Fourinarow_small : MonoBehaviour
                             {
                                 current_player = (current_player == 1) ? 2 : 1;
                                 if (current_player == 2)
-                                {
+                                {   
+                                    turning_text.color = Color.red;
                                     turning_text.text = "RED's Turn";
                                 }
                                 else
                                 {
+                                    turning_text.color = Color.blue;
                                     turning_text.text = "Blue's Turn";
                                 }
                                 return;
                             }
                             else if (val == -1)
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(1));
                                 return;
                             }
                             else
                             {
+                                gameEndSound();
                                 gameFinish = true;
                                 StartCoroutine(showWinner(2));
                                 return;
@@ -310,7 +515,7 @@ public class Fourinarow_small : MonoBehaviour
             }
         }
 
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -349,27 +554,31 @@ public class Fourinarow_small : MonoBehaviour
             }
         }
 
-
+        soundManagerOperation();
         int val = CheckWinner(grid_board);
         if (val == 0)
         {
             current_player = (current_player == 1) ? 2 : 1;
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
             }
             else
             {
+                turning_text.color= Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
         else if (val == -1)
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(1));
         }
         else
         {
+            gameEndSound();
             gameFinish = true;
             StartCoroutine(showWinner(3));
         }
@@ -453,27 +662,31 @@ public class Fourinarow_small : MonoBehaviour
                 }
             }
 
-
+            soundManagerOperation();
             int val = CheckWinner(grid_board);
             if (val == 0)
             {
                 current_player = (current_player == 1) ? 2 : 1;
                 if (current_player == 2)
                 {
+                    turning_text.color = Color.red;
                     turning_text.text = "AI's Turn";
                 }
                 else
                 {
+                    turning_text.color = Color.blue;
                     turning_text.text = "Your Turn";
                 }
             }
             else if (val == -1)
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(1));
             }
             else
             {
+                gameEndSound();
                 gameFinish = true;
                 StartCoroutine(showWinner(3));
             }
@@ -489,22 +702,31 @@ public class Fourinarow_small : MonoBehaviour
 
     IEnumerator showWinner(int ridoy)
     {
+        
         yield return new WaitForSeconds(2.5f);
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
+
         if (ridoy == 1)
         {
             resumeMenu.SetActive(true);
-            text_pop.text = "Match Draw!";
+            text_pop.text = "Match \nDraw!";
         }
         else if (ridoy == 2)
         {
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "Blue is Winner!";
+                text_pop.text = "Blue is \nWinner!";
             }
             else
             {
-                text_pop.text = "Red is Winner!";
+                text_pop.text = "Red is \nWinner!";
             }
         }
         else if (ridoy == 3)
@@ -512,13 +734,15 @@ public class Fourinarow_small : MonoBehaviour
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "You've Won!";
+                text_pop.text = "You've \nWon!";
             }
             else
             {
-                text_pop.text = "You've Lost!";
+                text_pop.text = "You've \nLost!";
             }
         }
+
+
     }
 
 

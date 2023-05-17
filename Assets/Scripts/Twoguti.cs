@@ -7,6 +7,12 @@ using TMPro;
 
 public class Twoguti : MonoBehaviour
 {
+    int sound = 1, vibration = 1, soundSettings = 1;
+    public AudioSource audioSource;
+    public AudioClip audioClip1, audioClip2, audioClip3, audioClip4, audioClip5;
+
+
+
     public GameObject[] board_cell = new GameObject[5];
     int[] board_num = {1, 1, 2, 2, 0 };
     int settings = 0;
@@ -19,7 +25,7 @@ public class Twoguti : MonoBehaviour
     public GameObject pauseMenu;
     public GameObject resumeMenu;
     int[,] graph = {{0,1,0,1,1 }, {1,0,1,0,1}, {0,1,0,0,1},{1,0,0,0,1},{1,1,1,1,0}};
-    public Button resumeButton, restartButton, exitButton, cancelButton;
+    public Button resumeButton, restartButton, exitButton, cancelButton, soundOn, soundOff, vibrationOn, vibrationOff;
     public Button restartBtn, exButton;
     public TextMeshProUGUI text_pop;
     TextMeshPro turning_text;
@@ -46,14 +52,26 @@ public class Twoguti : MonoBehaviour
         turning_text = turning_object.GetComponent<TextMeshPro>();
         current_player = Random.Range(1, 3);
 
+
+        soundOn.onClick.AddListener(soundOnclicked);
+        soundOff.onClick.AddListener(soundOffclicked);
+        vibrationOn.onClick.AddListener(vibrationOnclicked);
+        vibrationOff.onClick.AddListener(vibratioffOnclicked);
+        soundSettings = PlayerPrefs.GetInt("soundStatus", 1);
+        vibration = PlayerPrefs.GetInt("vibrationStatus", 1);
+        sound = PlayerPrefs.GetInt("soundSettings", 1);
+        playSound(0);
+
         if (settings == 0)
         {
             if(current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "RED's Turn";
             }
             else
             {
+                turning_text.color= Color.blue;
                 turning_text.text = "Blue's Turn";
             }
         }
@@ -61,6 +79,7 @@ public class Twoguti : MonoBehaviour
         {
             if (current_player == 2)
             {
+                turning_text.color = Color.red;
                 turning_text.text = "AI's Turn";
                 if(settings == 1)
                 {
@@ -77,23 +96,27 @@ public class Twoguti : MonoBehaviour
             }
             else
             {
+                turning_text.color = Color.blue;
                 turning_text.text = "Your Turn";
             }
         }
     }
     void onExitClicked()
     {
-        SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+        playButtonClickSound();
         SceneManager.LoadScene("parentpage");
     }
 
     void onRestartClicked()
     {
+        playButtonClickSound();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     void onResumeClicked()
     {
+        playButtonClickSound();
+        updatePopupPrefs();
         pauseMenu.SetActive(false);
         isPaused = false;
     }
@@ -140,6 +163,174 @@ public class Twoguti : MonoBehaviour
     }
 
 
+
+    void gameEndSound()
+    {
+        if (sound == 1)
+        {
+            audioSource.PlayOneShot(audioClip5);
+        }
+        else if (vibration == 1)
+        {
+            VibrationManager.Vibrate();
+        }
+    }
+
+
+
+    void playSound(int num)
+    {
+        if (sound != 1) return;
+        if (num == 0)
+        {
+            audioSource.PlayOneShot(audioClip1);
+        }
+        else if (num == 1)
+        {
+            audioSource.PlayOneShot(audioClip2);
+        }
+        else
+        {
+            audioSource.PlayOneShot(audioClip3);
+        }
+    }
+
+    void playVibration()
+    {
+        if (vibration != 1) return;
+        VibrationManager.Vibrate(vibration);
+    }
+
+
+    void soundOnclicked()
+    {
+        sound = 1;
+        playButtonClickSound();
+        soundOff.GetComponent<Image>().color = Color.white;
+        soundOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void soundOffclicked()
+    {
+        sound = 2;
+        soundOn.GetComponent<Image>().color = Color.white;
+        soundOff.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibrationOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 1;
+        vibrationOff.GetComponent<Image>().color = Color.white;
+        vibrationOn.GetComponent<Image>().color = Color.green;
+    }
+
+    void vibratioffOnclicked()
+    {
+        playButtonClickSound();
+        vibration = 2;
+        vibrationOn.GetComponent<Image>().color = Color.white;
+        vibrationOff.GetComponent<Image>().color = Color.green;
+    }
+
+
+    void playButtonClickSound()
+    {
+        if (sound != 1) return;
+        audioSource.PlayOneShot(audioClip4);
+    }
+
+
+    void soundManagerOperation()
+    {
+        if (current_player == 1)
+        {
+            if (soundSettings == 1)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 2)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(1);
+            }
+            else
+            {
+                playVibration();
+                playSound(1);
+            }
+        }
+
+        else
+        {
+            if (soundSettings == 1)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 2)
+            {
+                playSound(1);
+            }
+            else if (soundSettings == 3)
+            {
+                playVibration();
+            }
+            else if (soundSettings == 4)
+            {
+                playSound(2);
+            }
+            else
+            {
+                playVibration();
+                playSound(2);
+            }
+        }
+    }
+
+    void updatePopupPrefs()
+    {
+        PlayerPrefs.SetInt("soundSettings", sound);
+        PlayerPrefs.SetInt("vibrationStatus", vibration);
+    }
+
+
+    void updatePopupPanel()
+    {
+        if (sound == 1)
+        {
+            soundOff.GetComponent<Image>().color = Color.white;
+            soundOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            soundOn.GetComponent<Image>().color = Color.white;
+            soundOff.GetComponent<Image>().color = Color.green;
+        }
+
+        if (vibration == 1)
+        {
+            vibrationOff.GetComponent<Image>().color = Color.white;
+            vibrationOn.GetComponent<Image>().color = Color.green;
+        }
+        else
+        {
+            vibrationOn.GetComponent<Image>().color = Color.white;
+            vibrationOff.GetComponent<Image>().color = Color.green;
+        }
+    }
+
+
+
+
+
+
     void Update()
     {
         if (isPaused) return;
@@ -165,6 +356,7 @@ public class Twoguti : MonoBehaviour
                                     seleceted_object = gamer;
                                     index = i;
                                     seleceted_object.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
+                                    playButtonClickSound();
                                 }
                                 else if (board_num[i] == 0)
                                 {
@@ -172,6 +364,7 @@ public class Twoguti : MonoBehaviour
                                     {
                                         return;
                                     }
+                                    soundManagerOperation();
                                     seleceted_object.transform.localScale = new Vector3(1f, 1f, 1f);
                                     seleceted_object.GetComponent<SpriteRenderer>().sprite = null;
                                     board_num[index] = 0;
@@ -181,6 +374,7 @@ public class Twoguti : MonoBehaviour
                                     spriteRenderer.sprite = got_value[current_player - 1];
                                     if (isGameEnd())
                                     {
+                                        gameEndSound();
                                         gameFinished = true;
                                         StartCoroutine(showWinner(1));
                                         return;
@@ -188,10 +382,12 @@ public class Twoguti : MonoBehaviour
                                     current_player = (current_player == 1) ? 2 : 1;
                                     if(current_player == 2)
                                     {
+                                        turning_text.color = Color.red;
                                         turning_text.text = "RED's Turn";
                                     }
                                     else
                                     {
+                                        turning_text.color = Color.blue;
                                         turning_text.text = "Blue's Turn";
                                     }
                                 }
@@ -202,7 +398,7 @@ public class Twoguti : MonoBehaviour
                                 {
                                     return;
                                 }
-
+                                playButtonClickSound();
                                 seleceted_object = gamer;
                                 index = i;
                                 seleceted_object.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
@@ -230,6 +426,7 @@ public class Twoguti : MonoBehaviour
                             {
                                 if (board_num[i] == current_player)
                                 {
+                                    playButtonClickSound();
                                     seleceted_object.transform.localScale = new Vector3(1f, 1f, 1f);
                                     seleceted_object = gamer;
                                     index = i;
@@ -249,14 +446,17 @@ public class Twoguti : MonoBehaviour
                                     selected = false;
                                     SpriteRenderer spriteRenderer = gamer.GetComponent<SpriteRenderer>();
                                     spriteRenderer.sprite = got_value[current_player - 1];
+                                    soundManagerOperation();
                                     if (isGameEnd())
                                     {
+                                        gameEndSound();
                                         gameFinished = true;
                                         StartCoroutine(showWinner(2));
                                         return;
                                     }
                                     current_player = (current_player == 1) ? 2 : 1;
                                     turning_text.text = "AI's Turn";
+                                    turning_text.color = Color.red;
                                     if (settings == 1)
                                     {
                                         Invoke("AI_Turn_Easy", 1f);
@@ -278,6 +478,7 @@ public class Twoguti : MonoBehaviour
                                     return;
                                 }
 
+                                playButtonClickSound();
                                 seleceted_object = gamer;
                                 index = i;
                                 seleceted_object.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
@@ -290,7 +491,7 @@ public class Twoguti : MonoBehaviour
 
             }
         }
-        else if (Input.GetKey(KeyCode.Escape))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             onPauseGame();
         }
@@ -301,16 +502,23 @@ public class Twoguti : MonoBehaviour
     IEnumerator showWinner(int asif)
     {
         yield return new WaitForSeconds(2f);
-        if(asif == 1)
+
+        bool f = GoogleMobileAdsScript.ShowRewardedAd();
+        if (!f)
+        {
+            GoogleMobileAdsScript.ShowAd();
+        }
+
+        if (asif == 1)
         {
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "Blue is Winner!";
+                text_pop.text = "Blue is \nWinner!";
             }
             else
             {
-                text_pop.text = "Red is Winner!";
+                text_pop.text = "Red is \nWinner!";
             }
         }
         else if(asif == 2)
@@ -318,11 +526,11 @@ public class Twoguti : MonoBehaviour
             resumeMenu.SetActive(true);
             if (current_player == 1)
             {
-                text_pop.text = "You've Won!";
+                text_pop.text = "You've \nWon!";
             }
             else
             {
-                text_pop.text = "You've Lost!";
+                text_pop.text = "You've \nLost!";
             }
         }
         else
@@ -330,19 +538,22 @@ public class Twoguti : MonoBehaviour
             resumeMenu.SetActive(true);
             if (current_player == 2)
             {
-                text_pop.text = "You've Lost!";
+                text_pop.text = "You've \nLost!";
             }
             else
             {
-                text_pop.text = "You've Won!";
+                text_pop.text = "You've \nWon!";
             }
         }
     }
 
     void onPauseGame()
     {
+        if (isPaused) return;
+        playButtonClickSound();
         if (gameFinished) return;
         isPaused = true;
+        updatePopupPanel();
         pauseMenu.SetActive(true);
     }
 
@@ -412,8 +623,10 @@ public class Twoguti : MonoBehaviour
         board_num[index_store[rand]] = 0;
         board_cell[pos_zero].GetComponent<SpriteRenderer>().sprite = got_value[current_player - 1];
         board_cell[index_store[rand]].GetComponent<SpriteRenderer>().sprite = null;
+        soundManagerOperation();
         if (isGameEnd())
         {
+            gameEndSound();
             gameFinished = true;
             StartCoroutine(showWinner(3));
         }
@@ -421,6 +634,7 @@ public class Twoguti : MonoBehaviour
         {
             current_player = (current_player == 1) ? 2 : 1;
             turning_text.text = "Your Turn";
+            turning_text.color = Color.blue;
         }
     }
 
@@ -436,8 +650,10 @@ public class Twoguti : MonoBehaviour
                 board_num[i] = 0;
                 board_cell[pos_zero].GetComponent<SpriteRenderer>().sprite = got_value[current_player - 1];
                 board_cell[i].GetComponent<SpriteRenderer>().sprite = null;
+                soundManagerOperation();
                 if (isGameEnd())
                 {
+                    gameEndSound();
                     gameFinished = true;
                     StartCoroutine(showWinner(3));
                 }
@@ -445,6 +661,7 @@ public class Twoguti : MonoBehaviour
                 {
                     current_player = (current_player == 1) ? 2 : 1;
                     turning_text.text = "Your Turn";
+                    turning_text.color = Color.blue;
                 }
                 break;
             }
@@ -514,9 +731,11 @@ public class Twoguti : MonoBehaviour
         board_num[mov_index] = 0;
         board_cell[zero].GetComponent<SpriteRenderer>().sprite = got_value[current_player - 1];
         board_cell[mov_index].GetComponent<SpriteRenderer>().sprite = null;
+        soundManagerOperation();
 
         if (isGameEnd())
         {
+            gameEndSound();
             gameFinished = true;
             StartCoroutine(showWinner(3));
         }
@@ -524,6 +743,7 @@ public class Twoguti : MonoBehaviour
         {
             current_player = (current_player == 1) ? 2 : 1;
             turning_text.text = "Your Turn";
+            turning_text.color = Color.blue;
         }
 
     }
